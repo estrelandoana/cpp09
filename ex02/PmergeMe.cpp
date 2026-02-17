@@ -14,7 +14,6 @@
 #include <sys/time.h>
 #include <iomanip>
 
-/* ************************ CONSTRUCTOR ************************ */
 
 PmergeMe::PmergeMe(char **argv)
 {
@@ -22,8 +21,6 @@ PmergeMe::PmergeMe(char **argv)
 }
 
 PmergeMe::~PmergeMe() {}
-
-/* ************************ PARSE ************************ */
 
 void PmergeMe::parseInput(char **argv)
 {
@@ -41,8 +38,6 @@ void PmergeMe::parseInput(char **argv)
         _deque.push_back(static_cast<int>(num));
     }
 }
-
-/* ************************ FORD JOHNSON VECTOR ************************ */
 
 void PmergeMe::fordJohnsonVector(std::vector<int>& arr)
 {
@@ -120,8 +115,6 @@ void PmergeMe::fordJohnsonVector(std::vector<int>& arr)
     arr = mainChain;
 }
 
-/* ************************ FORD JOHNSON DEQUE ************************ */
-
 void PmergeMe::fordJohnsonDeque(std::deque<int>& arr)
 {
     if (arr.size() <= 1)
@@ -197,8 +190,6 @@ void PmergeMe::fordJohnsonDeque(std::deque<int>& arr)
 
     arr = mainChain;
 }
-
-/* ************************ PROCESS ************************ */
 
 void PmergeMe::process()
 {
