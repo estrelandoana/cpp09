@@ -209,8 +209,8 @@ void PmergeMe::process()
     fordJohnsonDeque(d);
     clock_t endD = clock();
 
-    double timeV = (double)(endV - startV) / CLOCKS_PER_SEC;
-    double timeD = (double)(endD - startD) / CLOCKS_PER_SEC;
+    long timeV = (long)((double)(endV - startV) * 1000000.0 / CLOCKS_PER_SEC);
+    long timeD = (long)((double)(endD - startD) * 1000000.0 / CLOCKS_PER_SEC);
 
     std::cout << "After:  ";
     for (size_t i = 0; i < v.size(); i++)
