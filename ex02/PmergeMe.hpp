@@ -5,38 +5,39 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: codespace <codespace@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/17 19:35:43 by codespace         #+#    #+#             */
-/*   Updated: 2026/02/17 20:48:23 by codespace        ###   ########.fr       */
+/*   Created: 2026/02/17 19:35:43 by apaula-l          #+#    #+#             */
+/*   Updated: 2026/03/08 19:24:18 by codespace        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef PMERGEME_HPP
-# define PMERGEME_HPP
-# include <vector>
-# include <deque>
-# include <string>
-# include <iostream>
-# include <sstream>
-# include <algorithm>
-# include <stdexcept>
-# include <ctime>
-# include <cstdlib>
+#define PMERGEME_HPP
+
+#include <vector>
+#include <deque>
+#include <iostream>
+#include <algorithm>
+#include <climits>
+#include <cstdlib>
+#include <ctime>
 
 class PmergeMe
 {
 private:
     std::vector<int> _vector;
-    std::deque<int>  _deque;
+    std::deque<int> _deque;
 
-    void fordJohnsonVector(std::vector<int>& arr);
-    void fordJohnsonDeque(std::deque<int>& arr);
-    void parseInput(char **argv);
+    void parseInput(int argc, char **argv);
+    
+    template <typename T>
+    void fordJohnson(T &container);
+    template <typename T>
+    void printContainer(const T &container);
+    void printLimited(const std::vector<int>& v);
 
 public:
-    PmergeMe(char **argv);
-    ~PmergeMe();
-
-    void process();
+    PmergeMe(int argc, char **argv);
+    void sortAndMeasure();
 };
 
 #endif

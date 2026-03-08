@@ -5,237 +5,122 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: codespace <codespace@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/02/17 19:39:23 by codespace         #+#    #+#             */
-/*   Updated: 2026/02/17 20:54:18 by codespace        ###   ########.fr       */
+/*   Created: 2026/02/17 19:39:23 by apaula-l          #+#    #+#             */
+/*   Updated: 2026/03/08 19:24:13 by codespace        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "PmergeMe.hpp"
-#include <sys/time.h>
-#include <iomanip>
 
-/* ************************ CONSTRUCTOR ************************ */
+#include "PmergeMe.hpp"
 
-PmergeMe::PmergeMe(char **argv)
+PmergeMe::PmergeMe(int argc, char **argv)
 {
-    parseInput(argv);
+    parseInput(argc, argv);
 }
 
-PmergeMe::~PmergeMe() {}
-
-/* ************************ PARSE ************************ */
-
-void PmergeMe::parseInput(char **argv)
+void PmergeMe::parseInput(int argc, char **argv)
 {
-    for (int i = 1; argv[i]; i++)
+    for (int i = 1; i < argc; i++)
     {
-        std::stringstream ss(argv[i]);
-        long num;
+        char *end;
+        long value = std::strtol(argv[i], &end, 10);
 
-        ss >> num;
+        if (*end != '\0' || value < 0 || value > INT_MAX)
+            throw std::invalid_argument("Error");
 
-        if (ss.fail() || !ss.eof() || num < 0 || num > 2147483647)
-            throw std::runtime_error("Error");
+        int num = static_cast<int>(value);
 
-        _vector.push_back(static_cast<int>(num));
-        _deque.push_back(static_cast<int>(num));
+        if (std::find(_vector.begin(), _vector.end(), num) != _vector.end())
+            throw std::invalid_argument("Error: duplicate");
+
+        _vector.push_back(num);
+        _deque.push_back(num);
     }
 }
 
-/* ************************ FORD JOHNSON VECTOR ************************ */
-
-void PmergeMe::fordJohnsonVector(std::vector<int>& arr)
+template <typename T>
+void PmergeMe::fordJohnson(T &container)
 {
-    if (arr.size() <= 1)
+    if (container.size() <= 1)
         return;
 
-    std::vector< std::pair<int,int> > pairs;
-    std::vector<int> mainChain;
-    std::vector<int> pending;
+    T mainChain;
+    T pending;
 
-    size_t i = 0;
-
-    for (; i + 1 < arr.size(); i += 2)
+    for (size_t i = 0; i + 1 < container.size(); i += 2)
     {
-        if (arr[i] > arr[i+1])
-            pairs.push_back(std::make_pair(arr[i], arr[i+1]));
-        else
-            pairs.push_back(std::make_pair(arr[i+1], arr[i]));
+        if (container[i] < container[i + 1])
+            std::swap(container[i], container[i + 1]);
+
+        mainChain.push_back(container[i]);
+        pending.push_back(container[i + 1]);
     }
 
-    int straggler = 0;
-    bool hasStraggler = false;
+    if (container.size() % 2 != 0)
+        mainChain.push_back(container.back());
 
-    if (i < arr.size())
+    fordJohnson(mainChain);
+
+    for (size_t i = 0; i < pending.size(); i++)
     {
-        straggler = arr[i];
-        hasStraggler = true;
+        typename T::iterator pos =
+            std::lower_bound(mainChain.begin(), mainChain.end(), pending[i]);
+
+        mainChain.insert(pos, pending[i]);
     }
 
-    std::vector<int> bigger;
-
-    for (size_t j = 0; j < pairs.size(); j++)
-        bigger.push_back(pairs[j].first);
-
-    fordJohnsonVector(bigger);
-
-    std::vector< std::pair<int,int> > sortedPairs;
-
-    for (size_t j = 0; j < bigger.size(); j++)
-    {
-        for (size_t k = 0; k < pairs.size(); k++)
-        {
-            if (pairs[k].first == bigger[j])
-            {
-                sortedPairs.push_back(pairs[k]);
-                pairs.erase(pairs.begin() + k);
-                break;
-            }
-        }
-    }
-
-    mainChain.push_back(sortedPairs[0].second);
-    mainChain.push_back(sortedPairs[0].first);
-
-    for (size_t j = 1; j < sortedPairs.size(); j++)
-    {
-        mainChain.push_back(sortedPairs[j].first);
-        pending.push_back(sortedPairs[j].second);
-    }
-
-    for (size_t j = 0; j < pending.size(); j++)
-    {
-        std::vector<int>::iterator pos =
-            std::lower_bound(mainChain.begin(), mainChain.end(), pending[j]);
-        mainChain.insert(pos, pending[j]);
-    }
-
-    if (hasStraggler)
-    {
-        std::vector<int>::iterator pos =
-            std::lower_bound(mainChain.begin(), mainChain.end(), straggler);
-        mainChain.insert(pos, straggler);
-    }
-
-    arr = mainChain;
+    container = mainChain;
 }
 
-/* ************************ FORD JOHNSON DEQUE ************************ */
-
-void PmergeMe::fordJohnsonDeque(std::deque<int>& arr)
+template <typename T>
+void PmergeMe::printContainer(const T &container)
 {
-    if (arr.size() <= 1)
-        return;
-
-    std::deque< std::pair<int,int> > pairs;
-    std::deque<int> mainChain;
-    std::deque<int> pending;
-
-    size_t i = 0;
-
-    for (; i + 1 < arr.size(); i += 2)
-    {
-        if (arr[i] > arr[i+1])
-            pairs.push_back(std::make_pair(arr[i], arr[i+1]));
-        else
-            pairs.push_back(std::make_pair(arr[i+1], arr[i]));
-    }
-
-    int straggler = 0;
-    bool hasStraggler = false;
-
-    if (i < arr.size())
-    {
-        straggler = arr[i];
-        hasStraggler = true;
-    }
-
-    std::deque<int> bigger;
-
-    for (size_t j = 0; j < pairs.size(); j++)
-        bigger.push_back(pairs[j].first);
-
-    fordJohnsonDeque(bigger);
-
-    std::deque< std::pair<int,int> > sortedPairs;
-
-    for (size_t j = 0; j < bigger.size(); j++)
-    {
-        for (size_t k = 0; k < pairs.size(); k++)
-        {
-            if (pairs[k].first == bigger[j])
-            {
-                sortedPairs.push_back(pairs[k]);
-                pairs.erase(pairs.begin() + k);
-                break;
-            }
-        }
-    }
-
-    mainChain.push_back(sortedPairs[0].second);
-    mainChain.push_back(sortedPairs[0].first);
-
-    for (size_t j = 1; j < sortedPairs.size(); j++)
-    {
-        mainChain.push_back(sortedPairs[j].first);
-        pending.push_back(sortedPairs[j].second);
-    }
-
-    for (size_t j = 0; j < pending.size(); j++)
-    {
-        std::deque<int>::iterator pos =
-            std::lower_bound(mainChain.begin(), mainChain.end(), pending[j]);
-        mainChain.insert(pos, pending[j]);
-    }
-
-    if (hasStraggler)
-    {
-        std::deque<int>::iterator pos =
-            std::lower_bound(mainChain.begin(), mainChain.end(), straggler);
-        mainChain.insert(pos, straggler);
-    }
-
-    arr = mainChain;
-}
-
-/* ************************ PROCESS ************************ */
-
-void PmergeMe::process()
-{
-    std::cout << "Before: ";
-    for (size_t i = 0; i < _vector.size(); i++)
-        std::cout << _vector[i] << " ";
+    for (typename T::const_iterator it = container.begin(); it != container.end(); ++it)
+        std::cout << *it << " ";
     std::cout << std::endl;
+}
 
-    std::vector<int> v = _vector;
-    std::deque<int>  d = _deque;
+void PmergeMe::printLimited(const std::vector<int>& v)
+{
+    size_t limit = 4;
 
-    clock_t startV = clock();
-    fordJohnsonVector(v);
-    clock_t endV = clock();
-
-    clock_t startD = clock();
-    fordJohnsonDeque(d);
-    clock_t endD = clock();
-
-    double timeV = (double)(endV - startV) / CLOCKS_PER_SEC;
-    double timeD = (double)(endD - startD) / CLOCKS_PER_SEC;
-
-    std::cout << "After:  ";
-    for (size_t i = 0; i < v.size(); i++)
+    for (size_t i = 0; i < v.size() && i < limit; i++)
         std::cout << v[i] << " ";
+
+    if (v.size() > limit)
+        std::cout << "[...]";
+
     std::cout << std::endl;
-
-    std::cout << std::fixed << std::setprecision(5);
-
-    std::cout << "Time to process a range of "
-              << v.size()
-              << " elements with std::vector : "
-              << timeV << " us" << std::endl;
-
-    std::cout << "Time to process a range of "
-              << d.size()
-              << " elements with std::deque  : "
-              << timeD << " us" << std::endl;
 }
 
+void PmergeMe::sortAndMeasure()
+{
+    std::vector<int> vec = _vector;
+    std::deque<int> deq(_vector.begin(), _vector.end());
+
+    std::cout << "Before: ";
+    printLimited(_vector);
+
+    clock_t startVec = clock();
+    fordJohnson(vec);
+    clock_t endVec = clock();
+
+    clock_t startDeq = clock();
+    fordJohnson(deq);
+    clock_t endDeq = clock();
+
+    std::cout << "After: ";
+    printLimited(vec);
+
+    double timeVec = (double)(endVec - startVec) / CLOCKS_PER_SEC * 1000000;
+    double timeDeq = (double)(endDeq - startDeq) / CLOCKS_PER_SEC * 1000000;
+
+    std::cout << "Time to process a range of " << vec.size()
+              << " elements with std::vector : "
+              << timeVec << " us" << std::endl;
+
+    std::cout << "Time to process a range of " << deq.size()
+              << " elements with std::deque : "
+              << timeDeq << " us" << std::endl;
+}

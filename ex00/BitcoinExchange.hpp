@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   BitcoinExchange.hpp                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: apaula-l <apaula-l@student.42sp.org.br>    +#+  +:+       +#+        */
+/*   By: codespace <codespace@student.42.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/01/03 20:36:29 by apaula-l          #+#    #+#             */
-/*   Updated: 2026/01/03 20:48:53 by apaula-l         ###   ########.fr       */
+/*   Updated: 2026/03/08 19:22:14 by codespace        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ class BitcoinExchange {
         void localDatabase(const std::string& filename);
         bool isValidDate(const std::string& date) const;
         bool isValidValue(double value) const;
+        bool isValidFormat(const std::string& line) const;
         double getExchangeRate(const std::string& date) const;
 
     public:
@@ -30,6 +31,7 @@ class BitcoinExchange {
         BitcoinExchange& operator=(const BitcoinExchange& copy);
         ~BitcoinExchange();
 
+        void validateFirstLine(std::ifstream& file);
         void processInputFile(const std::string& filename);
 };
 
